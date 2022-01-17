@@ -33,6 +33,11 @@ AGENTS_SCHEDULER_OPTS = [
                       'scheduler automatically assigns multiple DHCP agents '
                       'for a given tenant network, providing high '
                       'availability for DHCP service.')),
+    cfg.StrOpt('dhcp_agent_preference',
+               default='.*',
+               help=_('Regular expression identifying which hosts should be '
+                      'preferred for DHCP agent scheduling unless no other '
+                      'valid options are available.')),
     cfg.BoolOpt('enable_services_on_agents_with_admin_state_down',
                 default=False,
                 help=_('Enable services on an agent with admin_state_up '
