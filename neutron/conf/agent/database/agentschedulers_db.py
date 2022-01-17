@@ -36,6 +36,11 @@ AGENTS_SCHEDULER_OPTS = [
                       'availability for the DHCP service. However this does '
                       'not provide high availability for the IPv6 metadata '
                       'service in isolated networks.')),
+    cfg.StrOpt('dhcp_agent_preference',
+               default='.*',
+               help=_('Regular expression identifying which hosts should be '
+                      'preferred for DHCP agent scheduling unless no other '
+                      'valid options are available.')),
     cfg.BoolOpt('enable_services_on_agents_with_admin_state_down',
                 default=False,
                 help=_('Enable services on an agent with admin_state_up '
