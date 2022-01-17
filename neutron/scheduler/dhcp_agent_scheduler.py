@@ -15,6 +15,7 @@
 
 
 import collections
+import re
 from operator import itemgetter
 
 from neutron_lib.api.definitions import availability_zone as az_def
@@ -262,6 +263,14 @@ class DhcpFilter(base_resource_filter.BaseResourceFilter):
                             if agent['host'] in hostable_dhcp_hosts]
         return reachable_agents
 
+    def _filter_agents_by_preference(self, hostable_agents):
+        dhcp_regex = re.compile(cfg.CONF.dhcp_agent_preference)
+        preferred_agents = [agent for agent in hostable_agents
+                            if dhcp_regex.match(agent['host'])]
+        if len(preferred_agents) == 0:
+            preferred_agents = hostable_agents
+        return preferred_agents
+
     def _get_dhcp_agents_hosting_network(self, plugin, context, network):
         """Return dhcp agents hosting the given network or None if a given
            network is already hosted by enough number of agents.
@@ -311,12 +320,14 @@ class DhcpFilter(base_resource_filter.BaseResourceFilter):
         if not active_dhcp_agents:
             return {'n_agents': 0, 'hostable_agents': [],
                     'hosted_agents': hosted_agents}
+        hostable_dhcp_agents = self._filter_agents_with_network_access(
+            plugin, context, network, active_dhcp_agents)
+        hostable_dhcp_agents = self._filter_agents_by_preference(
+            hostable_dhcp_agents)
         hostable_dhcp_agents = [
-            agent for agent in active_dhcp_agents
+            agent for agent in hostable_dhcp_agents
             if agent.id not in hosted_agent_ids and plugin.is_eligible_agent(
                 context, True, agent)]
-        hostable_dhcp_agents = self._filter_agents_with_network_access(
-            plugin, context, network, hostable_dhcp_agents)
 
         if not hostable_dhcp_agents:
             result = {'n_agents': 0, 'hostable_agents': [],
