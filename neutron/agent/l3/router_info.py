@@ -814,6 +814,13 @@ class RouterInfo(BaseRouterInfo):
         if enabled:
             self.driver.configure_ipv6_forwarding(ns_name, 'all', enabled)
 
+        interface_name = self.get_external_device_interface_name(
+            ex_gw_port)
+        ip6tables = self.iptables_manager.get_tables(
+            lib_constants.IP_VERSION_6)
+        mld_rule = '-o %s -p ipv6-icmp -d ff02::16 -j DROP' % (interface_name)
+        ip6tables['filter'].add_rule('OUTPUT', mld_rule)
+
     def _external_gateway_added(self, ex_gw_port, interface_name,
                                 ns_name, preserve_ips):
         LOG.debug("External gateway added: port(%s), interface(%s), ns(%s)",
