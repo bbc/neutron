@@ -973,6 +973,10 @@ class L3_NAT_dbonly_mixin(l3.RouterPluginBase,
             port = self._check_router_port(context, port_id, '')
             revert_value = {'device_id': '',
                             'device_owner': port['device_owner']}
+            network_id = self._core_plugin.get_port(context, port_id)['network_id']
+            network_project_id = self._core_plugin.get_network(context, network_id)['project_id']
+            if router.project_id != network_project_id:
+                raise n_exc.NotAuthorized()
             with plugin_utils.update_port_on_error(
                     self._core_plugin, context, port_id, revert_value):
                 port, subnets = self._add_interface_by_port(
@@ -980,6 +984,10 @@ class L3_NAT_dbonly_mixin(l3.RouterPluginBase,
         # add_by_subnet is not used here, because the validation logic of
         # _validate_interface_info ensures that either of add_by_* is True.
         else:
+            network_id = self._core_plugin.get_subnet(context, interface_info['subnet_id'])['network_id']
+            network_project_id = self._core_plugin.get_network(context, network_id)['project_id']
+            if router.project_id != network_project_id:
+                raise n_exc.NotAuthorized()
             port, subnets, new_router_intf = self._add_interface_by_subnet(
                 context, router, interface_info['subnet_id'], device_owner)
             cleanup_port = new_router_intf  # only cleanup port we created
