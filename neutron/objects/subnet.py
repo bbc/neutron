@@ -359,6 +359,14 @@ class Subnet(base.NeutronDbObject):
             return cls._query_exclude_subnets_on_segments(
                 query, subnet_entity
             ).all()
+        elif fixed_configured:
+            # If fixed_ips in request and host is known, we can further filter
+            # segments in case the host has access to several within a single
+            # network
+            query = cls._query_filter_by_fixed_ips_segment(
+                query, fixed_ips, subnet_entity,
+                allow_multiple_segments=distributed_service
+            )
 
         # The host is known. Consider both routed and non-routed networks
         results = cls._query_filter_by_segment_host_mapping(
