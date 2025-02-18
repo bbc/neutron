@@ -31,6 +31,7 @@ import socket
 import sys
 import threading
 import time
+import typing
 import uuid
 import weakref
 
@@ -1125,3 +1126,11 @@ def is_iterable_not_string(value):
     return (isinstance(value, abc.Iterable) and
             not isinstance(value, abc.ByteString) and
             not isinstance(value, str))
+
+
+def stringmap(data: abc.Mapping[str, typing.Any],
+              default: str = '') -> dict[str, str]:
+    result = {}
+    for key, value in data.items():
+        result[key] = default if value is None else str(value)
+    return result
