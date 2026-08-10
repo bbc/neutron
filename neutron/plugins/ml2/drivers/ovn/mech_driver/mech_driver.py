@@ -963,6 +963,10 @@ class OVNMechanismDriver(api.MechanismDriver):
         original_port = copy.deepcopy(context.original)
         original_port['network'] = context.network.current
 
+        if port[portbindings.VIF_TYPE] == portbindings.VIF_TYPE_BRIDGE:
+            LOG.debug("Wrong VIF type: {}".format(port[portbindings.VIF_TYPE]))
+            return
+
         # NOTE(mjozefcz): Check if port is in migration state. If so update
         # the port status from DOWN to UP in order to generate 'fake'
         # vif-interface-plugged event. This workaround is needed to
@@ -1047,6 +1051,10 @@ class OVNMechanismDriver(api.MechanismDriver):
         can use with ports.
         """
         port = context.current
+        if port[portbindings.VIF_TYPE] == portbindings.VIF_TYPE_BRIDGE:
+            LOG.debug("Wrong VIF type: {}".format(port[portbindings.VIF_TYPE]))
+            return
+
         vnic_type = port.get(portbindings.VNIC_TYPE, portbindings.VNIC_NORMAL)
         if vnic_type not in self.supported_vnic_types:
             LOG.debug('Refusing to bind port %(port_id)s due to unsupported '

@@ -92,6 +92,12 @@ class AgentMechanismDriverBase(api.MechanismDriver, metaclass=abc.ABCMeta):
                   "network %(network)s",
                   {'port': context.current['id'],
                    'network': context.network.current['id']})
+
+        port = context.current
+        if port[portbindings.VIF_TYPE] == portbindings.VIF_TYPE_OVS:
+            LOG.debug("Wrong VIF type: {}".format(port[portbindings.VIF_TYPE]))
+            return
+
         vnic_type = context.current.get(portbindings.VNIC_TYPE,
                                         portbindings.VNIC_NORMAL)
         if vnic_type not in self.supported_vnic_types:
