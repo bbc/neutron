@@ -308,6 +308,7 @@ class DhcpAgent(manager.Manager):
         try:
             active_networks = self.plugin_rpc.get_active_networks_info(
                 enable_dhcp_filter=False)
+            active_networks = [n for n in active_networks if 'segments' in n and isinstance(n.segments, list) and len(n.segments) > 1]
             LOG.info('All active networks have been fetched through RPC.')
             active_network_ids = set(network.id for network in active_networks)
             for deleted_id in known_network_ids - active_network_ids:
@@ -440,16 +441,17 @@ class DhcpAgent(manager.Manager):
         if not network.admin_state_up:
             return
 
-        if (any(s for s in network.subnets if s.enable_dhcp) and
-                self.call_driver('enable', network)):
-            self.update_isolated_metadata_proxy(network)
-            self.cache.put(network)
-            # After enabling dhcp for network, mark all existing
-            # ports as ready. So that the status of ports which are
-            # created before enabling dhcp can be updated.
-            self.dhcp_ready_ports |= {p.id for p in network.ports}
+        if 'segments' in network and isinstance(network.segments, list) and len(network.segments) > 1:
+            if (any(s for s in network.subnets if s.enable_dhcp) and
+                    self.call_driver('enable', network)):
+                self.update_isolated_metadata_proxy(network)
+                self.cache.put(network)
+                # After enabling dhcp for network, mark all existing
+                # ports as ready. So that the status of ports which are
+                # created before enabling dhcp can be updated.
+                self.dhcp_ready_ports |= {p.id for p in network.ports}
 
-        self._resize_process_pool()
+            self._resize_process_pool()
 
     def disable_dhcp_helper(self, network_id):
         """Disable DHCP for a network known to the agent."""
